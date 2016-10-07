@@ -1,7 +1,10 @@
 # ProgressDialog
 非同期でProgreDialogを使う参考になればと思い作りました。  
+  
 **Demo**  
-![Demo]( ProgressDialog/capture/progressDialogCapture.gif )
+  
+![Demo]( https://github.com/13jk092koizumi/ProgressDialog/blob/master/capture/progressDialogCapture.gif )  
+  
 **注意点**  
 - コードはc#です。書き方は似ているのでjavaに置き換えて見てください。
 - AsyncTaskでも出来ると思いますが、Xamarin(c#)だとめんどくさいのでThreadを使いました。
