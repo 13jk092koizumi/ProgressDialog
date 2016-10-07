@@ -14,25 +14,27 @@ using Android.Net.Wifi;
 
 
 namespace GetWifi.src {
-    [Activity(Label = "AsyncProgressDialogActivity", MainLauncher = true)]
+    [Activity(Label = "AsyncProgressDialogActivity", MainLauncher = true)] //c#の'属性'です。javaではいりません
     public class AsyncProgressDialogActivity : Activity {
-        public const string MyScanAction = "MY_SCAN_ACTION";
+        public const string MyScanAction = "MY_SCAN_ACTION"; //定数の文字列。const = final
         protected override void OnCreate(Bundle savedInstanceState) {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.ProgressDialogLayout);
-
+            //ProgressDialogの定義
             ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.SetTitle("スキャン中");
-            progressDialog.SetMessage("しばらくお待ちッください...");
-            progressDialog.SetProgressStyle(ProgressDialogStyle.Horizontal);
-            
+            progressDialog.SetMessage("Message"); //後で変わるのでなんでもいい
+            progressDialog.SetProgressStyle(ProgressDialogStyle.Horizontal); //大文字小文字がjavaと違いますが仕様です
             Button button = FindViewById<Button>(Resource.Id.scan_button);
+
+            //ボタンのイベント。javaでいうonClick()です。
             button.Click += delegate {
+                //BroadCastReceiverのブロードキャスト(アクション)を自作しています。便利そうなのでやってみました
                 var filter = new IntentFilter();
-                filter.AddAction(MyScanAction);
+                filter.AddAction(MyScanAction); //ここはScanResulutsAvailableActionに変えてください
                 var receiver = new ScanReceiver(progressDialog);
                 RegisterReceiver(receiver, filter);
-                SendBroadcast(new Intent(MyScanAction));
+                SendBroadcast(new Intent(MyScanAction)); //Broadcast送信(自作のアクションのため)
             };
             
         }
@@ -47,32 +49,28 @@ namespace GetWifi.src {
             public override void OnReceive(Context context, Intent intent) {
                 this.context = context;
                 var action = intent.Action;
-                if (!action.Equals(AsyncProgressDialogActivity.MyScanAction)) {
-                    Console.WriteLine("can't receieve myscanaction!");
-                }
-                exeThread();
-                context.UnregisterReceiver(this);
+                exeThread(); //非同期処理実行
+                context.UnregisterReceiver(this); //登録したら必ず解除する
             }
 
+            //非同期処理。外に出したのに深い意味は無いです
             private void exeThread() {
                 thread = new Thread(() => {
-                    Handler handler = new Handler(context.MainLooper);
-                    
-                    handler.Post(() => { progressDialog.Show(); });
+                    Handler handler = new Handler(context.MainLooper); //UIスレッドにアクセスするためHandlerを使います
 
+                    handler.Post(() => { progressDialog.Show(); }); //javaだとRunnable()が必要だと思います
                     WifiManager wifi = (WifiManager)context.GetSystemService(WifiService);
+                    
+                    //i回スキャンする繰り返し処理
                     for (int i = 1; i <= 10; i++) {
                         handler.Post(() => {
                             progressDialog.Progress = i * 10; progressDialog.SetMessage(string.Format("現在{0}％", i * 10)); //非同期のおかげで動的にMessageを変えられます。
                         });
                         wifi.StartScan();
 
-                        /*DBへデータを追加する処理など*/
+                        /*DBへデータを追加する処理などをここに*/
 
                         Thread.Sleep(1000);//速攻でプログラムが終わっちゃうので
-                        Message msg = new Message();
-                        msg.Obj = string.Format("HandleMessage:i={0}",i);
-                        handler.SendMessage(msg);
                     }
                     
                     handler.Post(() => { progressDialog.Dismiss(); });
