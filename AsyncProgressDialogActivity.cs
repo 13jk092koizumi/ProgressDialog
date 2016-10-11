@@ -30,9 +30,9 @@ namespace GetWifi.src {
             //ボタンのイベント。javaでいうonClick()です。
             button.Click += delegate {
                 //BroadCastReceiverのブロードキャスト(アクション)を自作しています。便利そうなのでやってみました
-                var filter = new IntentFilter();
+                IntentFilter filter = new IntentFilter();
                 filter.AddAction(MyScanAction); //ここはScanResulutsAvailableActionに変えてください
-                var receiver = new ScanReceiver(progressDialog);
+                ScanReceiver receiver = new ScanReceiver(progressDialog);
                 RegisterReceiver(receiver, filter);
                 SendBroadcast(new Intent(MyScanAction)); //Broadcast送信(自作のアクションのため)
             };
@@ -48,7 +48,6 @@ namespace GetWifi.src {
             }
             public override void OnReceive(Context context, Intent intent) {
                 this.context = context;
-                var action = intent.Action;
                 exeThread(); //非同期処理実行
                 context.UnregisterReceiver(this); //登録したら必ず解除する
             }
